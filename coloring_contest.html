@@ -401,9 +401,12 @@
 
       // 選択中のレイヤーに赤い縁取りを描画
       if (selectedLayer !== 'background' && selectedLayer !== 1) {
-        const selectedLayerImg = loadedImages[selectedLayer];
-        if (selectedLayerImg) {
-          drawOutline(selectedLayerImg);
+        const layer = layers.find(l => l.id === selectedLayer);
+        if (layer && layer.visible) {
+          const selectedLayerImg = loadedImages[selectedLayer];
+          if (selectedLayerImg) {
+            drawOutline(selectedLayerImg);
+          }
         }
       }
     }
