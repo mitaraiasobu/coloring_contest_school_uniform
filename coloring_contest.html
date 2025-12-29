@@ -427,11 +427,9 @@
         
         // Xの投稿画面を開く
         setTimeout(() => {
-          const text = encodeURIComponent('#御手洗みたら？ 御手洗遊 新衣装 塗り絵コンテストに参加しました！🦝/r（画像が自動ダウンロードされました。画像を添付して投稿してください！）');
+          const text = encodeURIComponent('#御手洗みたら？ 御手洗遊 新衣装 塗り絵コンテストに参加しました！🦝\n（画像が自動ダウンロードされました。画像を添付して投稿してください！）');
           const tweetUrl = `https://twitter.com/intent/tweet?text=${text}`;
           window.open(tweetUrl, '_blank', 'width=550,height=420');
-          
-          alert('画像がダウンロードされました！\nXの投稿画面で画像を添付してください。');
         }, 500);
       });
     }
@@ -451,4 +449,3 @@
   </script>
 </body>
 </html>
-
