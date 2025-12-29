@@ -114,18 +114,18 @@
     let imageLoadStatus = {};
     let layers = [
       { id: 'background', name: '背景', color: '#ffffff', visible: true, isBackground: true },
-      { id: 2, name: 'レイヤー2', color: null, visible: true },
-      { id: 3, name: 'レイヤー3', color: null, visible: true },
-      { id: 4, name: 'レイヤー4', color: null, visible: true },
-      { id: 5, name: 'レイヤー5', color: null, visible: true },
-      { id: 6, name: 'レイヤー6', color: null, visible: true },
-      { id: 7, name: 'レイヤー7', color: null, visible: true },
-      { id: 8, name: 'レイヤー8', color: null, visible: true },
-      { id: 9, name: 'レイヤー9', color: null, visible: true },
-      { id: 10, name: 'レイヤー10', color: null, visible: true },
-      { id: 11, name: 'レイヤー11', color: null, visible: true },
-      { id: 12, name: 'レイヤー12', color: null, visible: true },
-      { id: 13, name: 'レイヤー13', color: null, visible: true },
+      { id: 2, name: '帽子', color: null, visible: true },
+      { id: 3, name: 'フリル', color: null, visible: true },
+      { id: 4, name: 'ライン', color: null, visible: true },
+      { id: 5, name: 'リボン', color: null, visible: true },
+      { id: 6, name: '上着', color: null, visible: true },
+      { id: 7, name: '靴下リボン', color: null, visible: true },
+      { id: 8, name: '靴下', color: null, visible: true },
+      { id: 9, name: 'スカート', color: null, visible: true },
+      { id: 10, name: '靴', color: null, visible: true },
+      { id: 11, name: 'ヘアリボン', color: null, visible: true },
+      { id: 12, name: 'ピアス', color: null, visible: true },
+      { id: 13, name: '襟', color: null, visible: true },
     ];
     let fixedLayerVisible = true;
 
@@ -285,12 +285,6 @@
       selectedLayer = layerId;
       renderLayerList();
       updateApplyButton();
-      updateCanvasBorder();
-    }
-
-    function updateCanvasBorder() {
-      const container = document.getElementById('canvasContainer');
-      container.className = 'border-4 border-purple-200 rounded-lg overflow-hidden bg-white transition-all';
     }
 
     function updateApplyButton() {
@@ -333,6 +327,10 @@
     }
 
     function resetAll() {
+      if (!confirm('すべての色をリセットしますか？')) {
+        return;
+      }
+      
       layers.forEach(layer => {
         if (layer.isBackground) {
           layer.color = '#ffffff';
@@ -398,81 +396,6 @@
         const img = loadedImages[1];
         if (img) ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
       }
-
-      // 選択中のレイヤーに赤い縁取りを描画
-      if (selectedLayer !== 'background' && selectedLayer !== 1) {
-        const layer = layers.find(l => l.id === selectedLayer);
-        if (layer && layer.visible) {
-          const selectedLayerImg = loadedImages[selectedLayer];
-          if (selectedLayerImg) {
-            drawOutline(selectedLayerImg);
-          }
-        }
-      }
-    }
-
-    // 画像の不透明部分に縁取りを描画
-    function drawOutline(img) {
-      const tempCanvas = document.createElement('canvas');
-      tempCanvas.width = canvas.width;
-      tempCanvas.height = canvas.height;
-      const tempCtx = tempCanvas.getContext('2d');
-      
-      tempCtx.drawImage(img, 0, 0, tempCanvas.width, tempCanvas.height);
-      const imageData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
-      const data = imageData.data;
-      const w = tempCanvas.width;
-      const h = tempCanvas.height;
-      
-      // エッジ検出用の新しいキャンバス
-      const outlineCanvas = document.createElement('canvas');
-      outlineCanvas.width = w;
-      outlineCanvas.height = h;
-      const outlineCtx = outlineCanvas.getContext('2d');
-      const outlineData = outlineCtx.createImageData(w, h);
-      
-      // エッジを検出
-      for (let y = 0; y < h; y++) {
-        for (let x = 0; x < w; x++) {
-          const idx = (y * w + x) * 4;
-          const alpha = data[idx + 3];
-          
-          // 現在のピクセルが不透明な場合
-          if (alpha > 0) {
-            // 周囲8方向をチェック
-            let isEdge = false;
-            for (let dy = -1; dy <= 1; dy++) {
-              for (let dx = -1; dx <= 1; dx++) {
-                if (dx === 0 && dy === 0) continue;
-                
-                const nx = x + dx;
-                const ny = y + dy;
-                
-                if (nx >= 0 && nx < w && ny >= 0 && ny < h) {
-                  const nidx = (ny * w + nx) * 4;
-                  // 隣接ピクセルが透明ならエッジ
-                  if (data[nidx + 3] === 0) {
-                    isEdge = true;
-                    break;
-                  }
-                }
-              }
-              if (isEdge) break;
-            }
-            
-            // エッジなら赤く描画
-            if (isEdge) {
-              outlineData.data[idx] = 255;     // R
-              outlineData.data[idx + 1] = 0;   // G
-              outlineData.data[idx + 2] = 0;   // B
-              outlineData.data[idx + 3] = 255; // A
-            }
-          }
-        }
-      }
-      
-      outlineCtx.putImageData(outlineData, 0, 0);
-      ctx.drawImage(outlineCanvas, 0, 0);
     }
 
     function hexToRgb(hex) {
@@ -492,9 +415,25 @@
     }
 
     function postToX() {
-      const text = encodeURIComponent('#御手洗みたら？ 御手洗遊 新衣装 塗り絵コンテストに参加しました！🦝');
-      const url = `https://twitter.com/intent/tweet?text=${text}`;
-      window.open(url, '_blank', 'width=550,height=420');
+      // 画像をBlobに変換してダウンロード
+      canvas.toBlob((blob) => {
+        // 画像をダウンロード
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.download = 'coloring_contest.png';
+        link.href = url;
+        link.click();
+        URL.revokeObjectURL(url);
+        
+        // Xの投稿画面を開く
+        setTimeout(() => {
+          const text = encodeURIComponent('#御手洗みたら？ 御手洗遊 新衣装 塗り絵コンテストに参加しました！🦝');
+          const tweetUrl = `https://twitter.com/intent/tweet?text=${text}`;
+          window.open(tweetUrl, '_blank', 'width=550,height=420');
+          
+          alert('画像がダウンロードされました！\nXの投稿画面で画像を添付してください。');
+        }, 500);
+      });
     }
 
     function setupEventListeners() {
