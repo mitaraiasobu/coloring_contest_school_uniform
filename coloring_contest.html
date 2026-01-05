@@ -220,6 +220,11 @@
           
           if (loadCount === totalImages) {
             document.getElementById('loadingStatus').classList.add('hidden');
+            // 全て成功した場合のみデバッグ情報を隠す
+            const hasErrors = Object.values(imageLoadStatus).some(s => s === 'error');
+            if (!hasErrors) {
+              document.getElementById('debugInfo').classList.add('hidden');
+            }
             drawCanvas();
           }
         };
@@ -232,6 +237,7 @@
           
           if (loadCount === totalImages) {
             document.getElementById('loadingStatus').classList.add('hidden');
+            // エラーがある場合はデバッグ情報を表示したまま
             showErrors();
           }
         };
@@ -640,14 +646,25 @@
 
     // パレットをキャッシュに保存（セッション中のみ保持）
     function savePaletteToCache() {
-      // メモリ内に保持されるため特別な処理は不要
-      // customPalette変数に保存されている状態が維持されます
+      try {
+        localStorage.setItem('coloringContestPalette', JSON.stringify(customPalette));
+      } catch (e) {
+        // localStorage が使えない環境（Claude.ai）では何もしない
+        console.log('パレットの保存: localStorage使用不可（メモリ内に保持）');
+      }
     }
 
     // パレットをキャッシュから読み込み
     function loadPaletteFromCache() {
-      // 初期化時はcustomPalette = []として既に定義済み
-      // セッション中は変数が保持されます
+      try {
+        const saved = localStorage.getItem('coloringContestPalette');
+        if (saved) {
+          customPalette = JSON.parse(saved);
+        }
+      } catch (e) {
+        // localStorage が使えない環境（Claude.ai）では何もしない
+        console.log('パレットの読み込み: localStorage使用不可');
+      }
     }
 
     // パレットをリセット
