@@ -33,6 +33,7 @@
       <p class="text-blue-700 font-bold mb-2">📊 画像読み込み状態:</p>
       <div id="imageStatus" class="grid grid-cols-4 gap-2 text-sm"></div>
       <p id="loadCount" class="text-blue-600 text-sm mt-2"></p>
+      <p id="pathInfo" class="text-blue-600 text-xs mt-2"></p>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
@@ -202,6 +203,7 @@
     // 画像を読み込む
     function loadImages() {
       document.getElementById('loadingStatus').classList.remove('hidden');
+      document.getElementById('pathInfo').textContent = `画像パス例: ${layerImageUrls[1]}`;
       let loadCount = 0;
       const totalImages = Object.keys(layerImageUrls).length;
 
@@ -218,19 +220,18 @@
           
           if (loadCount === totalImages) {
             document.getElementById('loadingStatus').classList.add('hidden');
-            document.getElementById('debugInfo').classList.add('hidden');
             drawCanvas();
           }
         };
         
-        img.onerror = () => {
+        img.onerror = (e) => {
+          console.error(`画像読み込みエラー - レイヤー${id}: ${url}`, e);
           imageLoadStatus[id] = 'error';
           loadCount++;
           updateLoadStatus(loadCount, totalImages);
           
           if (loadCount === totalImages) {
             document.getElementById('loadingStatus').classList.add('hidden');
-            document.getElementById('debugInfo').classList.add('hidden');
             showErrors();
           }
         };
@@ -265,10 +266,12 @@
         errorList.innerHTML = '';
         errors.forEach(([id]) => {
           const li = document.createElement('li');
-          li.textContent = `レイヤー${id}: 読み込みエラー`;
+          li.textContent = `レイヤー${id}: ${layerImageUrls[id]} - 読み込みエラー`;
           errorList.appendChild(li);
         });
       }
+      // エラーがあってもキャンバスは描画を試みる
+      drawCanvas();
     }
 
     // 色相バーを描画
@@ -431,6 +434,7 @@
         deleteBtn.onclick = (e) => {
           e.stopPropagation();
           customPalette.splice(index, 1);
+          savePaletteToCache();
           renderCustomPalette();
         };
         
@@ -634,6 +638,32 @@
       window.open(twitterUrl, '_blank');
     }
 
+    // パレットをキャッシュに保存（セッション中のみ保持）
+    function savePaletteToCache() {
+      // メモリ内に保持されるため特別な処理は不要
+      // customPalette変数に保存されている状態が維持されます
+    }
+
+    // パレットをキャッシュから読み込み
+    function loadPaletteFromCache() {
+      // 初期化時はcustomPalette = []として既に定義済み
+      // セッション中は変数が保持されます
+    }
+
+    // パレットをリセット
+    function resetPalette() {
+      if (customPalette.length === 0) {
+        alert('マイパレットは空です。');
+        return;
+      }
+      
+      if (confirm('マイパレットをリセットしますか？\nこの操作は取り消せません。')) {
+        customPalette = [];
+        savePaletteToCache();
+        renderCustomPalette();
+      }
+    }
+
     // イベントリスナーを設定
     function setupEventListeners() {
       document.getElementById('applyColorBtn').onclick = applyColor;
@@ -641,6 +671,7 @@
       document.getElementById('downloadBtn').onclick = downloadImage;
       document.getElementById('tweetBtn').onclick = tweetImage;
       document.getElementById('addToPaletteBtn').onclick = addToCustomPalette;
+      document.getElementById('resetPaletteBtn').onclick = resetPalette;
     }
 
     // 初期化実行
