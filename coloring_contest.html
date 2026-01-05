@@ -17,15 +17,18 @@
       🎨 塗り絵コンテスト
     </h1>
 
+    <!-- 読み込み状態 -->
     <div id="loadingStatus" class="bg-yellow-100 border-l-4 border-yellow-500 p-4 mb-6 hidden">
       <p class="text-yellow-700">⏳ 画像を読み込んでいます...</p>
     </div>
 
+    <!-- エラー表示 -->
     <div id="errorStatus" class="bg-red-100 border-l-4 border-red-500 p-4 mb-6 hidden">
       <p class="text-red-700 font-bold">❌ 一部の画像が読み込めませんでした</p>
       <ul id="errorList" class="text-sm text-red-600 ml-7 mt-2"></ul>
     </div>
 
+    <!-- デバッグ情報 -->
     <div id="debugInfo" class="bg-blue-100 border-l-4 border-blue-500 p-4 mb-6">
       <p class="text-blue-700 font-bold mb-2">📊 画像読み込み状態:</p>
       <div id="imageStatus" class="grid grid-cols-4 gap-2 text-sm"></div>
@@ -33,24 +36,25 @@
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
+      <!-- キャンバスエリア -->
       <div class="bg-white rounded-lg shadow-lg p-4 lg:p-6">
         <div class="border-4 border-purple-200 rounded-lg overflow-hidden bg-white">
           <canvas id="canvas" class="w-full h-auto max-w-full"></canvas>
         </div>
-        <div class="mt-4 flex flex-col sm:flex-row justify-center lg:justify-end gap-2">
-          <button id="downloadBtn" class="flex items-center justify-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm lg:text-base">
+        <div class="mt-4 flex justify-center lg:justify-end">
+          <button id="downloadBtn" class="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm lg:text-base">
             📥 画像をダウンロード
-          </button>
-          <button id="tweetBtn" class="flex items-center justify-center gap-2 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors text-sm lg:text-base">
-            🐦 ツイート
           </button>
         </div>
       </div>
 
+      <!-- コントロールパネル -->
       <div class="grid grid-cols-2 gap-4 lg:grid-cols-1 lg:space-y-0 lg:gap-6">
+        <!-- カラーパレット -->
         <div class="bg-white rounded-lg shadow-lg p-4 lg:p-6 col-span-2 lg:col-span-1">
           <h2 class="text-lg lg:text-xl font-bold mb-3 lg:mb-4">🎨 カラーパレット</h2>
           
+          <!-- 色相バー -->
           <div class="mb-4">
             <label class="block text-sm font-medium mb-2">🌈 色相</label>
             <div class="relative w-full h-8 mb-3">
@@ -58,6 +62,7 @@
               <div id="colorCursor" class="absolute w-1 h-10 bg-white rounded-sm shadow-lg pointer-events-none border-2 border-gray-800" style="top: 50%; left: 0%; transform: translate(-50%, -50%);"></div>
             </div>
             
+            <!-- 明度・彩度調整 -->
             <div class="space-y-2 mb-3">
               <div>
                 <label class="block text-xs font-medium mb-1">💡 明度</label>
@@ -69,6 +74,7 @@
               </div>
             </div>
             
+            <!-- 現在の色プレビュー -->
             <div class="flex items-center gap-2 mb-3">
               <div id="currentColorPreview" class="w-12 h-12 rounded border-2 border-gray-300" style="background-color: #ff0000;"></div>
               <div class="flex-grow">
@@ -80,6 +86,7 @@
             </div>
           </div>
 
+          <!-- 自作パレット -->
           <div class="mb-4">
             <label class="block text-sm font-medium mb-2">💾 マイパレット</label>
             <div id="customPalette" class="grid grid-cols-6 gap-2 min-h-[40px] p-2 bg-gray-50 rounded border-2 border-dashed border-gray-300"></div>
@@ -90,6 +97,7 @@
           </button>
         </div>
 
+        <!-- レイヤーパネル -->
         <div class="bg-white rounded-lg shadow-lg p-4 lg:p-6 col-span-2 lg:col-span-1">
           <div class="flex justify-between items-center mb-3 lg:mb-4">
             <h2 class="text-lg lg:text-xl font-bold">レイヤー</h2>
@@ -102,6 +110,7 @@
       </div>
     </div>
 
+    <!-- 使い方 -->
     <div class="mt-8 bg-white rounded-lg shadow-lg p-6">
       <h3 class="text-lg font-bold mb-3">📖 使い方</h3>
       <ol class="list-decimal list-inside space-y-2 text-gray-700">
@@ -111,12 +120,12 @@
         <li>「選択したレイヤーに塗る」ボタンをクリック</li>
         <li>👁️ アイコンでレイヤーの表示/非表示を切り替え</li>
         <li>完成したら「画像をダウンロード」ボタンで保存</li>
-        <li>「ツイート」ボタンで画像がダウンロードされ、Twitter投稿画面が開きます</li>
       </ol>
     </div>
   </div>
 
   <script>
+    // 画像URLの設定
     const layerImageUrls = {
       1: './images/1.png',
       2: './images/2.png',
@@ -133,6 +142,7 @@
       13: './images/13.png',
     };
 
+    // 状態管理
     let selectedColor = '#ff0000';
     let selectedLayer = 'background';
     let loadedImages = {};
@@ -158,6 +168,7 @@
     ];
     let fixedLayerVisible = true;
 
+    // DOMエレメント
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
     const colorBar = document.getElementById('colorBar');
@@ -168,6 +179,7 @@
     const currentColorPreview = document.getElementById('currentColorPreview');
     const colorCursor = document.getElementById('colorCursor');
 
+    // 初期化
     function init() {
       loadImages();
       drawColorBar();
@@ -178,6 +190,7 @@
       setTimeout(updateColorCursorPosition, 100);
     }
 
+    // 画像を読み込む
     function loadImages() {
       document.getElementById('loadingStatus').classList.remove('hidden');
       let loadCount = 0;
@@ -217,6 +230,7 @@
       });
     }
 
+    // 読み込み状態を更新
     function updateLoadStatus(loaded, total) {
       const statusDiv = document.getElementById('imageStatus');
       statusDiv.innerHTML = '';
@@ -233,6 +247,7 @@
         `読み込み済み: ${Object.values(imageLoadStatus).filter(s => s === 'loaded').length} / ${total}`;
     }
 
+    // エラーを表示
     function showErrors() {
       const errors = Object.entries(imageLoadStatus).filter(([_, status]) => status === 'error');
       if (errors.length > 0) {
@@ -247,6 +262,7 @@
       }
     }
 
+    // 色相バーを描画
     function drawColorBar() {
       const width = colorBar.parentElement.offsetWidth;
       const height = 32;
@@ -262,6 +278,7 @@
       colorBarCtx.fillRect(0, 0, width, height);
     }
 
+    // 色相バーのカーソル位置を更新
     function updateColorCursorPosition() {
       const barContainer = colorBar.parentElement;
       const rect = barContainer.getBoundingClientRect();
@@ -270,6 +287,7 @@
       colorCursor.style.left = `${x}px`;
     }
 
+    // 色相バーのクリックイベント
     colorBar.addEventListener('click', (e) => {
       const rect = colorBar.getBoundingClientRect();
       const x = e.clientX - rect.left;
@@ -279,6 +297,7 @@
       updateCurrentColor();
     });
 
+    // HSLからHEXへ変換
     function hslToHex(h, s, l) {
       s /= 100;
       l /= 100;
@@ -291,6 +310,7 @@
       return `#${f(0)}${f(8)}${f(4)}`;
     }
 
+    // 現在の色を更新
     function updateCurrentColor() {
       const hex = hslToHex(currentHue, currentSaturation, currentBrightness);
       selectedColor = hex;
@@ -299,6 +319,7 @@
       updateColorCursorPosition();
     }
 
+    // スライダーイベント
     brightnessSlider.addEventListener('input', (e) => {
       currentBrightness = parseInt(e.target.value);
       updateCurrentColor();
@@ -309,6 +330,7 @@
       updateCurrentColor();
     });
 
+    // HEX入力イベント
     hexInput.addEventListener('input', (e) => {
       const hex = e.target.value;
       if (/^#[0-9A-F]{6}$/i.test(hex)) {
@@ -325,6 +347,7 @@
       }
     });
 
+    // RGBからHSLへ変換
     function rgbToHsl(r, g, b) {
       r /= 255;
       g /= 255;
@@ -352,6 +375,7 @@
       };
     }
 
+    // 自作パレットに色を追加
     function addToCustomPalette() {
       if (!customPalette.includes(selectedColor)) {
         customPalette.push(selectedColor);
@@ -359,6 +383,7 @@
       }
     }
 
+    // 自作パレットを描画
     function renderCustomPalette() {
       const paletteDiv = document.getElementById('customPalette');
       paletteDiv.innerHTML = '';
@@ -405,10 +430,12 @@
       });
     }
 
+    // レイヤーリストを描画
     function renderLayerList() {
       const listDiv = document.getElementById('layerList');
       listDiv.innerHTML = '';
 
+      // 固定レイヤー（レイヤー1）
       const fixedDiv = document.createElement('div');
       fixedDiv.className = 'flex items-center gap-2 p-3 rounded-lg border-2 border-gray-400 bg-gray-100';
       fixedDiv.innerHTML = `
@@ -421,6 +448,7 @@
       `;
       listDiv.appendChild(fixedDiv);
 
+      // その他のレイヤー
       layers.forEach(layer => {
         const div = document.createElement('div');
         const isSelected = selectedLayer === layer.id;
@@ -440,12 +468,14 @@
       });
     }
 
+    // レイヤーを選択
     function selectLayer(layerId) {
       selectedLayer = layerId;
       renderLayerList();
       updateApplyButton();
     }
 
+    // 適用ボタンの状態を更新
     function updateApplyButton() {
       const btn = document.getElementById('applyColorBtn');
       if (selectedLayer === 1) {
@@ -459,9 +489,136 @@
       }
     }
 
+    // レイヤーの表示/非表示を切り替え
     window.toggleLayerVisibility = function(layerId) {
       const layer = layers.find(l => l.id == layerId);
       if (layer) {
         layer.visible = !layer.visible;
         renderLayerList();
         drawCanvas();
+      }
+    };
+
+    // 固定レイヤーの表示/非表示
+    window.toggleFixedLayer = function() {
+      fixedLayerVisible = !fixedLayerVisible;
+      renderLayerList();
+      drawCanvas();
+    };
+
+    // 色を適用
+    function applyColor() {
+      if (selectedLayer === 1) return;
+      
+      const layer = layers.find(l => l.id === selectedLayer);
+      if (layer) {
+        layer.color = selectedColor;
+        renderLayerList();
+        drawCanvas();
+      }
+    }
+
+    // リセット
+    function resetAll() {
+      layers.forEach(layer => {
+        if (layer.isBackground) {
+          layer.color = '#ffffff';
+        } else {
+          layer.color = null;
+        }
+      });
+      renderLayerList();
+      drawCanvas();
+    }
+
+    // キャンバスに描画
+    function drawCanvas() {
+      if (Object.keys(loadedImages).length === 0) return;
+
+      const firstImg = loadedImages[1];
+      if (firstImg) {
+        canvas.width = firstImg.width / 2;
+        canvas.height = firstImg.height / 2;
+      }
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // レイヤーを描画
+      layers.forEach(layer => {
+        if (!layer.visible) return;
+
+        if (layer.isBackground) {
+          ctx.fillStyle = layer.color || '#ffffff';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          return;
+        }
+
+        const img = loadedImages[layer.id];
+        if (!img) return;
+
+        if (layer.color) {
+          const tempCanvas = document.createElement('canvas');
+          tempCanvas.width = canvas.width;
+          tempCanvas.height = canvas.height;
+          const tempCtx = tempCanvas.getContext('2d');
+          
+          tempCtx.drawImage(img, 0, 0, tempCanvas.width, tempCanvas.height);
+          const imageData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
+          const data = imageData.data;
+          
+          const rgb = hexToRgb(layer.color);
+          
+          for (let i = 0; i < data.length; i += 4) {
+            if (data[i + 3] > 0) {
+              data[i] = rgb.r;
+              data[i + 1] = rgb.g;
+              data[i + 2] = rgb.b;
+            }
+          }
+          
+          tempCtx.putImageData(imageData, 0, 0);
+          ctx.drawImage(tempCanvas, 0, 0);
+        } else {
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        }
+      });
+
+      // 固定レイヤー（最上位）
+      if (fixedLayerVisible) {
+        const img = loadedImages[1];
+        if (img) ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      }
+    }
+
+    // Hex to RGB変換
+    function hexToRgb(hex) {
+      const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+      return result ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16)
+      } : { r: 255, g: 255, b: 255 };
+    }
+
+    // 画像をダウンロード
+    function downloadImage() {
+      const link = document.createElement('a');
+      link.download = 'coloring_contest.png';
+      link.href = canvas.toDataURL();
+      link.click();
+    }
+
+    // イベントリスナーを設定
+    function setupEventListeners() {
+      document.getElementById('applyColorBtn').onclick = applyColor;
+      document.getElementById('resetBtn').onclick = resetAll;
+      document.getElementById('downloadBtn').onclick = downloadImage;
+      document.getElementById('addToPaletteBtn').onclick = addToCustomPalette;
+    }
+
+    // 初期化実行
+    init();
+  </script>
+</body>
+</html>
+
