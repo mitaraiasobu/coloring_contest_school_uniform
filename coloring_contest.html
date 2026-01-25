@@ -17,6 +17,35 @@
       🎨 塗り絵コンテスト
     </h1>
 
+    
+    <!-- 上部ダウンロードバー -->
+    <div id="topDownloadBar" class="relative mb-6">
+      <div class="bg-white/80 backdrop-blur rounded-xl shadow-lg border border-purple-100 p-4 lg:p-5">
+        <button id="closeTopDownloadBar" class="absolute -top-2 -right-2 w-9 h-9 rounded-full bg-gray-800 text-white shadow-md hover:bg-gray-700 transition flex items-center justify-center" aria-label="閉じる">
+          ✕
+        </button>
+        <div class="flex flex-col sm:flex-row gap-3 sm:gap-4">
+          <a
+            href="https://www.dropbox.com/scl/fi/n13n83mqwtiwywacephep/school_uniform_4.png?rlkey=oxty5v4n90824d0ns8s17lnt9&st=0t1vqzda&dl=0"
+            target="_blank" rel="noopener noreferrer"
+            class="w-full inline-flex items-center justify-center gap-2 text-base lg:text-lg font-bold px-5 py-4 rounded-xl bg-purple-600 text-white hover:bg-purple-700 transition shadow"
+          >
+            ⬇️ 塗る前の画像ダウンロード
+          </a>
+          <a
+            href="https://www.dropbox.com/scl/fi/mpzj8h3v5s3ld0tc44eko/mitaraiasobu_nurie.psd?rlkey=ypbedwxtmghoibcrh458yz68s&st=oil5j8ix&dl=0"
+            target="_blank" rel="noopener noreferrer"
+            class="w-full inline-flex items-center justify-center gap-2 text-base lg:text-lg font-bold px-5 py-4 rounded-xl bg-gray-900 text-white hover:bg-black transition shadow"
+          >
+            ⬇️ PSDダウンロード
+          </a>
+        </div>
+        <p class="mt-3 text-xs lg:text-sm text-gray-600">
+          ※不要な場合は右上の「✕」で非表示にできます
+        </p>
+      </div>
+    </div>
+
     <!-- 読み込み状態 -->
     <div id="loadingStatus" class="bg-yellow-100 border-l-4 border-yellow-500 p-4 mb-6 hidden">
       <p class="text-yellow-700">⏳ 画像を読み込んでいます...</p>
@@ -42,13 +71,28 @@
         <div class="border-4 border-purple-200 rounded-lg overflow-hidden bg-white">
           <canvas id="canvas" class="w-full h-auto max-w-full"></canvas>
         </div>
-        <div class="mt-4 flex flex-col sm:flex-row gap-2 justify-center lg:justify-end">
-          <button id="downloadBtn" class="flex items-center justify-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm lg:text-base">
-            📥 画像をダウンロード
-          </button>
-          <button id="tweetBtn" class="flex items-center justify-center gap-2 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors text-sm lg:text-base">
-            🐦 Twitterに投稿
-          </button>
+        
+        <div class="mt-4 flex flex-col gap-2">
+          <div class="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center justify-between">
+            <!-- 左:みんなの作品を見る -->
+            <a
+              href="https://x.com/search?q=%23%E5%BE%A1%E6%89%8B%E6%B4%97%E3%81%BF%E3%81%9F%E3%82%89&src=hashtag_click&f=live"
+              target="_blank" rel="noopener noreferrer"
+              class="w-full sm:w-auto inline-flex items-center justify-center gap-2 text-sm lg:text-base font-bold px-4 py-3 rounded-lg bg-pink-500 text-white hover:bg-pink-600 transition-colors shadow"
+            >
+              👀 みんなの作品を見る
+            </a>
+
+            <!-- 右:ダウンロード / 投稿 -->
+            <div class="flex flex-col sm:flex-row gap-2 justify-end">
+              <button id="downloadBtn" class="flex items-center justify-center gap-2 px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm lg:text-base">
+                📥 画像をダウンロード
+              </button>
+              <button id="tweetBtn" class="flex items-center justify-center gap-2 px-4 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm lg:text-base">
+                🐦 Twitterに投稿
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -125,11 +169,52 @@
       <ol class="list-decimal list-inside space-y-2 text-gray-700">
         <li>色相バーをクリックして色を選び、明度・彩度で調整</li>
         <li>気に入った色ができたら「➕ 登録」でマイパレットに保存</li>
-        <li>レイヤーパネルから塗りたいレイヤーを選択（レイヤー1は固定で変更不可）</li>
+        <li>レイヤーパネルから塗りたいレイヤーを選択(レイヤー1は固定で変更不可)</li>
         <li>「選択したレイヤーに塗る」ボタンをクリック</li>
         <li>👁️ アイコンでレイヤーの表示/非表示を切り替え</li>
         <li>完成したら「画像をダウンロード」または「Twitterに投稿」</li>
       </ol>
+    </div>
+
+    <!-- 下部プロモ画像ギャラリー -->
+    <section class="mt-10">
+      <h2 class="text-lg lg:text-xl font-extrabold text-gray-800 mb-4">ほかのイベントもチェック</h2>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <button class="promoThumb group" data-full="./images/イラコン2.png" aria-label="イラコン2を拡大" type="button">
+          <img src="./images/イラコン2.png" alt="イラコン2" class="w-full h-auto rounded-xl shadow border border-gray-200 group-hover:opacity-90 transition max-w-[50%] mx-auto" loading="lazy">
+        </button>
+
+        <button class="promoThumb group" data-full="./images/切り抜き動画コンテスト.png" aria-label="切り抜き動画コンテストを拡大" type="button">
+          <img src="./images/切り抜き動画コンテスト.png" alt="切り抜き動画コンテスト" class="w-full h-auto rounded-xl shadow border border-gray-200 group-hover:opacity-90 transition max-w-[50%] mx-auto" loading="lazy">
+        </button>
+      </div>
+      <p class="mt-3 text-xs lg:text-sm text-gray-600">画像をクリックすると拡大表示できます。</p>
+    </section>
+
+    <!-- 画像拡大モーダル -->
+    <div id="imageModal" class="fixed inset-0 z-[9999] hidden">
+      <div id="imageModalBackdrop" class="absolute inset-0 bg-black/70"></div>
+      <div class="relative w-full h-full flex flex-col items-center justify-center p-4">
+        <button id="imageModalClose" class="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/90 text-gray-900 shadow hover:bg-white transition flex items-center justify-center" aria-label="閉じる">
+          ✕
+        </button>
+        
+        <!-- 拡大コントロール -->
+        <div class="absolute top-4 left-4 bg-white/90 rounded-lg p-3 shadow-lg">
+          <div class="flex items-center gap-3">
+            <span class="text-sm font-medium text-gray-700">🔍 拡大</span>
+            <input type="range" id="zoomSlider" min="50" max="300" value="100" class="w-32">
+            <span id="zoomPercent" class="text-sm font-medium text-gray-700 w-12">100%</span>
+            <button id="resetZoom" class="px-2 py-1 bg-gray-200 hover:bg-gray-300 rounded text-xs">リセット</button>
+          </div>
+        </div>
+        
+        <!-- 画像コンテナ(スクロール可能) -->
+        <div class="flex-1 overflow-auto flex items-center justify-center w-full">
+          <img id="imageModalImg" src="" alt="" class="rounded-xl shadow-2xl border border-white/20 transition-transform" style="max-width: none; max-height: none; transform: scale(1);">
+        </div>
+      </div>
     </div>
   </div>
 
@@ -220,7 +305,6 @@
           
           if (loadCount === totalImages) {
             document.getElementById('loadingStatus').classList.add('hidden');
-            // 全て成功した場合のみデバッグ情報を隠す
             const hasErrors = Object.values(imageLoadStatus).some(s => s === 'error');
             if (!hasErrors) {
               document.getElementById('debugInfo').classList.add('hidden');
@@ -237,7 +321,6 @@
           
           if (loadCount === totalImages) {
             document.getElementById('loadingStatus').classList.add('hidden');
-            // エラーがある場合はデバッグ情報を表示したまま
             showErrors();
           }
         };
@@ -276,7 +359,6 @@
           errorList.appendChild(li);
         });
       }
-      // エラーがあってもキャンバスは描画を試みる
       drawCanvas();
     }
 
@@ -455,7 +537,7 @@
       const listDiv = document.getElementById('layerList');
       listDiv.innerHTML = '';
 
-      // 固定レイヤー（レイヤー1）
+      // 固定レイヤー(レイヤー1)
       const fixedDiv = document.createElement('div');
       fixedDiv.className = 'flex items-center gap-2 p-3 rounded-lg border-2 border-gray-400 bg-gray-100';
       fixedDiv.innerHTML = `
@@ -603,7 +685,7 @@
         }
       });
 
-      // 固定レイヤー（最上位）
+      // 固定レイヤー(最上位)
       if (fixedLayerVisible) {
         const img = loadedImages[1];
         if (img) ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
@@ -630,27 +712,23 @@
 
     // Twitterに投稿
     function tweetImage() {
-      // 画像をダウンロード
       const link = document.createElement('a');
       link.download = 'coloring_contest.png';
       link.href = canvas.toDataURL();
       link.click();
 
-      // ツイート文言
-      const tweetText = encodeURIComponent('#御手洗みたら？ 御手洗遊 新衣装 塗り絵コンテストに参加しました！\n（画像が自動ダウンロードされました。画像を添付して投稿してください！）');
+      const tweetText = encodeURIComponent('#御手洗みたら? 御手洗遊 新衣装 塗り絵コンテストに参加しました!\n(画像が自動ダウンロードされました。画像を添付して投稿してください!)');
       
-      // Twitter投稿画面を開く
       const twitterUrl = `https://twitter.com/intent/tweet?text=${tweetText}`;
       window.open(twitterUrl, '_blank');
     }
 
-    // パレットをキャッシュに保存（セッション中のみ保持）
+    // パレットをキャッシュに保存(セッション中のみ保持)
     function savePaletteToCache() {
       try {
         localStorage.setItem('coloringContestPalette', JSON.stringify(customPalette));
       } catch (e) {
-        // localStorage が使えない環境（Claude.ai）では何もしない
-        console.log('パレットの保存: localStorage使用不可（メモリ内に保持）');
+        console.log('パレットの保存: localStorage使用不可(メモリ内に保持)');
       }
     }
 
@@ -662,7 +740,6 @@
           customPalette = JSON.parse(saved);
         }
       } catch (e) {
-        // localStorage が使えない環境（Claude.ai）では何もしない
         console.log('パレットの読み込み: localStorage使用不可');
       }
     }
@@ -674,10 +751,50 @@
         return;
       }
       
-      if (confirm('マイパレットをリセットしますか？\nこの操作は取り消せません。')) {
+      if (confirm('マイパレットをリセットしますか?\nこの操作は取り消せません。')) {
         customPalette = [];
         savePaletteToCache();
         renderCustomPalette();
+      }
+    }
+
+    // モーダル関連の関数(グローバルスコープ)
+    let currentZoom = 100;
+    
+    function openImageModal(src, altText) {
+      const modal = document.getElementById('imageModal');
+      const modalImg = document.getElementById('imageModalImg');
+      if (!modal || !modalImg) return;
+      modalImg.src = src;
+      modalImg.alt = altText || '';
+      modal.classList.remove('hidden');
+      currentZoom = 100;
+      updateZoom();
+    }
+    
+    function closeImageModal() {
+      const modal = document.getElementById('imageModal');
+      const modalImg = document.getElementById('imageModalImg');
+      if (!modal || !modalImg) return;
+      modal.classList.add('hidden');
+      modalImg.src = '';
+      modalImg.alt = '';
+      currentZoom = 100;
+    }
+    
+    function updateZoom() {
+      const modalImg = document.getElementById('imageModalImg');
+      const zoomSlider = document.getElementById('zoomSlider');
+      const zoomPercent = document.getElementById('zoomPercent');
+      
+      if (modalImg) {
+        modalImg.style.transform = `scale(${currentZoom / 100})`;
+      }
+      if (zoomSlider) {
+        zoomSlider.value = currentZoom;
+      }
+      if (zoomPercent) {
+        zoomPercent.textContent = `${currentZoom}%`;
       }
     }
 
@@ -689,6 +806,59 @@
       document.getElementById('tweetBtn').onclick = tweetImage;
       document.getElementById('addToPaletteBtn').onclick = addToCustomPalette;
       document.getElementById('resetPaletteBtn').onclick = resetPalette;
+      
+      // 上部ダウンロードバーを閉じる
+      const closeBtn = document.getElementById('closeTopDownloadBar');
+      const topBar = document.getElementById('topDownloadBar');
+      if (closeBtn && topBar) {
+        closeBtn.onclick = () => {
+          topBar.classList.add('hidden');
+        };
+      }
+      
+      // プロモ画像:クリックで拡大表示
+      document.querySelectorAll('.promoThumb').forEach((btn) => {
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          const full = btn.getAttribute('data-full');
+          const img = btn.querySelector('img');
+          const altText = img ? img.alt : '';
+          openImageModal(full, altText);
+        });
+      });
+
+      // モーダルを閉じる
+      const modalClose = document.getElementById('imageModalClose');
+      const modalBackdrop = document.getElementById('imageModalBackdrop');
+      
+      if (modalClose) {
+        modalClose.addEventListener('click', closeImageModal);
+      }
+      if (modalBackdrop) {
+        modalBackdrop.addEventListener('click', closeImageModal);
+      }
+      
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeImageModal();
+      });
+      
+      // ズームスライダー
+      const zoomSlider = document.getElementById('zoomSlider');
+      const resetZoom = document.getElementById('resetZoom');
+      
+      if (zoomSlider) {
+        zoomSlider.addEventListener('input', (e) => {
+          currentZoom = parseInt(e.target.value);
+          updateZoom();
+        });
+      }
+      
+      if (resetZoom) {
+        resetZoom.addEventListener('click', () => {
+          currentZoom = 100;
+          updateZoom();
+        });
+      }
     }
 
     // 初期化実行
