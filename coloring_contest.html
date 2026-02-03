@@ -462,14 +462,6 @@
       11: './images/11.png',
       12: './images/12.png',
       13: './images/13.png',
-      14: './images/14.png',
-      15: './images/15.png',
-      16: './images/16.png',
-      17: './images/17.png',
-      18: './images/18.png',
-      19: './images/19.png',
-      20: './images/20.png',
-      21: './images/21.png',
     };
     
     const imagePaths = Object.values(layerImageUrls);
@@ -479,12 +471,26 @@
     let errorCount = 0;
     const errorMessages = [];
 
-    let layers = [];
+    let layers = [
+      { id: 'background', name: '背景', color: '#ffffff', visible: true, isBackground: true },
+      { id: 2, name: '帽子', color: null, visible: true },
+      { id: 3, name: 'フリル', color: null, visible: true },
+      { id: 4, name: 'ライン', color: null, visible: true },
+      { id: 5, name: '胸リボン', color: null, visible: true },
+      { id: 6, name: '上着', color: null, visible: true },
+      { id: 7, name: '靴下リボン', color: null, visible: true },
+      { id: 8, name: '靴下', color: null, visible: true },
+      { id: 9, name: 'スカート', color: null, visible: true },
+      { id: 10, name: '靴', color: null, visible: true },
+      { id: 11, name: '髪リボン', color: null, visible: true },
+      { id: 12, name: 'イヤリング', color: null, visible: true },
+      { id: 13, name: '襟', color: null, visible: true },
+    ];
     let selectedLayer = null;
     let fixedLayerVisible = true;
 
     // 初期化
-    async function init() {
+    function init() {
       loadPaletteFromCache();
       setupColorBar();
       setupColorBarMobile();
@@ -492,11 +498,9 @@
       renderCustomPalette();
       renderCustomPaletteMobile();
       setupEventListeners();
-      await loadImages();
-      initializeLayers();
+      loadImages();
       renderLayers();
       renderLayersMobile();
-      drawCanvas();
     }
 
     // 色相バーの描画
@@ -678,75 +682,62 @@
     }
 
     // 画像読み込み
-    async function loadImages() {
-      const loadingEl = document.getElementById('loadingStatus');
-      const errorEl = document.getElementById('errorStatus');
-      const errorListEl = document.getElementById('errorList');
-      const imageStatusEl = document.getElementById('imageStatus');
-      const loadCountEl = document.getElementById('loadCount');
-      const pathInfoEl = document.getElementById('pathInfo');
+    function loadImages() {
+      document.getElementById('loadingStatus').classList.remove('hidden');
+      document.getElementById('pathInfo').textContent = `画像パス例: ${layerImageUrls[1]}`;
+      let loadCount = 0;
+      const totalImages = Object.keys(layerImageUrls).length;
 
-      loadingEl.classList.remove('hidden');
-      
-      pathInfoEl.textContent = `読み込み元: ${window.location.origin}${window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/'))}`;
-
-      const promises = imagePaths.map((path, index) => {
-        return new Promise((resolve) => {
-          const img = new Image();
-          img.crossOrigin = 'anonymous';
+      Object.entries(layerImageUrls).forEach(([id, url]) => {
+        const statusDiv = document.createElement('div');
+        statusDiv.className = 'text-blue-600';
+        statusDiv.textContent = `レイヤー${id}: ⏳`;
+        document.getElementById('imageStatus').appendChild(statusDiv);
+        
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        
+        img.onload = () => {
+          loadedImages[id] = img;
+          loadCount++;
+          statusDiv.className = 'text-blue-600';
+          statusDiv.textContent = `レイヤー${id}: ✅`;
+          document.getElementById('loadCount').textContent = 
+            `読み込み済み: ${loadCount} / ${totalImages}`;
           
-          const statusDiv = document.createElement('div');
-          statusDiv.className = 'p-2 bg-gray-100 rounded text-xs';
-          statusDiv.textContent = `レイヤー${index + 1}: 読込中...`;
-          imageStatusEl.appendChild(statusDiv);
-
-          img.onload = () => {
-            loadedImages[index] = img;
-            loadCount++;
-            statusDiv.className = 'p-2 bg-green-100 rounded text-xs';
-            statusDiv.textContent = `レイヤー${index + 1}: ✓`;
-            loadCountEl.textContent = `読み込み完了: ${loadCount}/${imagePaths.length}`;
-            
-            if (index === 0) {
-              canvas.width = img.width;
-              canvas.height = img.height;
-            }
-            resolve();
-          };
-
-          img.onerror = () => {
-            errorCount++;
-            const errorMsg = `レイヤー${index + 1} (${path})`;
-            errorMessages.push(errorMsg);
-            statusDiv.className = 'p-2 bg-red-100 rounded text-xs';
-            statusDiv.textContent = `レイヤー${index + 1}: ✗`;
-            loadCountEl.textContent = `読み込み完了: ${loadCount}/${imagePaths.length} (エラー: ${errorCount})`;
-            resolve();
-          };
-
-          img.src = path;
-        });
+          if (loadCount === totalImages) {
+            document.getElementById('loadingStatus').classList.add('hidden');
+            document.getElementById('debugInfo').classList.add('hidden');
+            drawCanvas();
+          }
+        };
+        
+        img.onerror = (e) => {
+          console.error(`画像読み込みエラー - レイヤー${id}: ${url}`, e);
+          loadCount++;
+          statusDiv.className = 'text-blue-600';
+          statusDiv.textContent = `レイヤー${id}: ❌`;
+          document.getElementById('loadCount').textContent = 
+            `読み込み済み: ${loadCount} / ${totalImages}`;
+          
+          if (loadCount === totalImages) {
+            document.getElementById('loadingStatus').classList.add('hidden');
+            showErrors(id, url);
+          }
+        };
+        
+        img.src = url;
       });
-
-      await Promise.all(promises);
-
-      loadingEl.classList.add('hidden');
-
-      if (errorCount > 0) {
-        errorEl.classList.remove('hidden');
-        errorListEl.innerHTML = errorMessages.map(msg => `<li>${msg}</li>`).join('');
-      }
     }
 
-    // レイヤーを初期化
-    function initializeLayers() {
-      layers = imagePaths.slice(2).map((path, index) => ({
-        id: index + 2,
-        name: `レイヤー${index + 2}`,
-        visible: true,
-        color: '#ffffff',
-        imagePath: path
-      }));
+    // エラーを表示
+    function showErrors(id, url) {
+      document.getElementById('errorStatus').classList.remove('hidden');
+      const errorList = document.getElementById('errorList');
+      const li = document.createElement('li');
+      li.textContent = `レイヤー${id}: ${url} - 読み込みエラー`;
+      errorList.appendChild(li);
+      drawCanvas();
     }
 
     // レイヤーをレンダリング
@@ -768,6 +759,8 @@
       layerList.appendChild(fixedLayer);
 
       layers.forEach(layer => {
+        if (layer.isBackground) return; // 背景レイヤーはスキップ
+        
         const layerEl = document.createElement('div');
         layerEl.className = `flex items-center justify-between p-3 rounded-lg border-2 transition-colors cursor-pointer ${
           selectedLayer === layer.id ? 'bg-purple-100 border-purple-400' : 'bg-white border-gray-200 hover:border-purple-200'
@@ -775,7 +768,7 @@
         
         layerEl.innerHTML = `
           <div class="flex items-center gap-3">
-            <div class="w-6 h-6 rounded border-2 border-gray-300" style="background-color: ${layer.color}"></div>
+            <div class="w-6 h-6 rounded border-2 border-gray-300" style="background-color: ${layer.color || '#ffffff'}"></div>
             <span class="text-sm font-medium">${layer.name}</span>
           </div>
           <button class="layer-eye w-8 h-8 rounded hover:bg-gray-200 transition-colors" data-layer="${layer.id}">
@@ -833,6 +826,8 @@
       layerList.appendChild(fixedLayer);
 
       layers.forEach(layer => {
+        if (layer.isBackground) return; // 背景レイヤーはスキップ
+        
         const layerEl = document.createElement('div');
         layerEl.className = `flex items-center justify-between p-3 rounded-lg border-2 transition-colors cursor-pointer ${
           selectedLayer === layer.id ? 'bg-purple-100 border-purple-400' : 'bg-white border-gray-200 hover:border-purple-200'
@@ -840,7 +835,7 @@
         
         layerEl.innerHTML = `
           <div class="flex items-center gap-3">
-            <div class="w-6 h-6 rounded border-2 border-gray-300" style="background-color: ${layer.color}"></div>
+            <div class="w-6 h-6 rounded border-2 border-gray-300" style="background-color: ${layer.color || '#ffffff'}"></div>
             <span class="text-sm font-medium">${layer.name}</span>
           </div>
           <button class="layer-eye-mobile w-8 h-8 rounded hover:bg-gray-200 transition-colors" data-layer="${layer.id}">
@@ -899,11 +894,12 @@
     function resetAll() {
       if (confirm('すべてのレイヤーの色をリセットしますか?')) {
         layers.forEach(layer => {
-          layer.color = '#ffffff';
-          layer.visible = true;
+          if (layer.isBackground) {
+            layer.color = '#ffffff';
+          } else {
+            layer.color = null;
+          }
         });
-        fixedLayerVisible = true;
-        selectedLayer = null;
         renderLayers();
         renderLayersMobile();
         drawCanvas();
@@ -912,27 +908,36 @@
 
     // キャンバスを描画
     function drawCanvas() {
+      if (Object.keys(loadedImages).length === 0) return;
+
+      const firstImg = loadedImages[1];
+      if (firstImg) {
+        canvas.width = firstImg.width / 2;
+        canvas.height = firstImg.height / 2;
+      }
+
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // 背景レイヤー
-      const bgImg = loadedImages[0];
-      if (bgImg) ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
-
-      // 各レイヤー
+      // レイヤーを描画
       layers.forEach(layer => {
         if (!layer.visible) return;
 
-        const img = loadedImages[layer.id - 1];
+        if (layer.isBackground) {
+          ctx.fillStyle = layer.color || '#ffffff';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          return;
+        }
+
+        const img = loadedImages[layer.id];
         if (!img) return;
 
-        if (layer.color !== '#ffffff') {
+        if (layer.color) {
           const tempCanvas = document.createElement('canvas');
           tempCanvas.width = canvas.width;
           tempCanvas.height = canvas.height;
-          const tempCtx = tempCanvas.getContext('2d', { willReadFrequently: true });
+          const tempCtx = tempCanvas.getContext('2d');
           
           tempCtx.drawImage(img, 0, 0, tempCanvas.width, tempCanvas.height);
-          
           const imageData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
           const data = imageData.data;
           
