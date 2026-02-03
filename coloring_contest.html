@@ -9,6 +9,123 @@
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     }
+    
+    /* スライドパネルのスタイル */
+    .slide-panel {
+      position: fixed;
+      top: 0;
+      right: -100%;
+      width: 85%;
+      max-width: 400px;
+      height: 100vh;
+      background: white;
+      box-shadow: -4px 0 16px rgba(0, 0, 0, 0.2);
+      transition: right 0.3s ease-in-out;
+      z-index: 1000;
+      overflow-y: auto;
+    }
+    
+    .slide-panel.active {
+      right: 0;
+    }
+    
+    .panel-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.5);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease-in-out;
+      z-index: 999;
+    }
+    
+    .panel-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    
+    /* パネル閉じるボタン（暗い部分の右下） */
+    .panel-close-btn {
+      position: fixed;
+      bottom: 20px;
+      right: calc(85% - 28px);
+      max-right: calc(400px - 28px);
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #9333ea, #ec4899);
+      color: white;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      z-index: 1001;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    
+    .panel-close-btn.active {
+      display: flex;
+    }
+    
+    .panel-close-btn:active {
+      transform: scale(0.95);
+    }
+    
+    /* 塗るボタンを上部固定 */
+    .apply-color-fixed {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: white;
+      padding: 16px;
+      border-bottom: 2px solid #e5e7eb;
+      margin: -24px -24px 16px -24px;
+    }
+    
+    /* スマホ表示時のトグルボタン */
+    .panel-toggle {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #9333ea, #ec4899);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      z-index: 998;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    
+    .panel-toggle:active {
+      transform: scale(0.95);
+    }
+    
+    /* PC表示時は非表示 */
+    @media (min-width: 1024px) {
+      .slide-panel,
+      .panel-overlay,
+      .panel-toggle {
+        display: none;
+      }
+    }
+    
+    /* スマホ表示時は元のコントロールパネルを非表示 */
+    @media (max-width: 1023px) {
+      .desktop-controls {
+        display: none !important;
+      }
+    }
   </style>
 </head>
 <body class="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 p-6">
@@ -96,8 +213,8 @@
         </div>
       </div>
 
-      <!-- コントロールパネル -->
-      <div class="grid grid-cols-2 gap-4 lg:grid-cols-1 lg:space-y-0 lg:gap-6">
+      <!-- PC版コントロールパネル -->
+      <div class="desktop-controls grid grid-cols-2 gap-4 lg:grid-cols-1 lg:space-y-0 lg:gap-6">
         <!-- カラーパレット -->
         <div class="bg-white rounded-lg shadow-lg p-4 lg:p-6 col-span-2 lg:col-span-1">
           <h2 class="text-lg lg:text-xl font-bold mb-3 lg:mb-4">🎨 カラーパレット</h2>
@@ -163,6 +280,89 @@
       </div>
     </div>
 
+    <!-- スマホ用スライドパネル -->
+    <div id="panelOverlay" class="panel-overlay"></div>
+    
+    <!-- パネル閉じるボタン（暗い部分の右下） -->
+    <button id="closePanelBtn" class="panel-close-btn">
+      ▶
+    </button>
+    
+    <div id="slidePanel" class="slide-panel">
+      <div class="p-6">
+        <!-- 上部固定：塗るボタン -->
+        <div class="apply-color-fixed">
+          <button id="applyColorBtnMobile" class="w-full bg-purple-600 text-white py-3 rounded-lg font-bold hover:bg-purple-700 transition-colors">
+            選択したレイヤーに塗る
+          </button>
+        </div>
+
+        <!-- カラーパレット（モバイル） -->
+        <div class="mb-6">
+          <h3 class="text-lg font-bold mb-3">🎨 カラーパレット</h3>
+          
+          <!-- 色相バー -->
+          <div class="mb-4">
+            <label class="block text-sm font-medium mb-2">🌈 色相</label>
+            <div class="relative w-full h-8 mb-3">
+              <canvas id="colorBarMobile" class="w-full h-full cursor-pointer rounded"></canvas>
+              <div id="colorCursorMobile" class="absolute w-1 h-10 bg-white rounded-sm shadow-lg pointer-events-none border-2 border-gray-800" style="top: 50%; left: 0%; transform: translate(-50%, -50%);"></div>
+            </div>
+            
+            <!-- 明度・彩度調整 -->
+            <div class="space-y-2 mb-3">
+              <div>
+                <label class="block text-xs font-medium mb-1">💡 明度</label>
+                <input type="range" id="brightnessSliderMobile" min="0" max="100" value="50" class="w-full">
+              </div>
+              <div>
+                <label class="block text-xs font-medium mb-1">✨ 彩度</label>
+                <input type="range" id="saturationSliderMobile" min="0" max="100" value="100" class="w-full">
+              </div>
+            </div>
+            
+            <!-- 現在の色プレビュー -->
+            <div class="flex items-center gap-2 mb-3">
+              <div id="currentColorPreviewMobile" class="w-12 h-12 rounded border-2 border-gray-300" style="background-color: #ff0000;"></div>
+              <div class="flex-grow">
+                <input type="text" id="hexInputMobile" value="#ff0000" class="w-full px-2 py-1 text-sm border rounded" placeholder="#000000">
+              </div>
+              <button id="addToPaletteBtnMobile" class="bg-blue-500 text-white px-3 py-2 rounded text-sm hover:bg-blue-600 transition-colors">
+                ➕
+              </button>
+            </div>
+          </div>
+
+          <!-- 自作パレット -->
+          <div class="mb-4">
+            <div class="flex justify-between items-center mb-2">
+              <label class="block text-sm font-medium">💾 マイパレット</label>
+              <button id="resetPaletteBtnMobile" class="text-xs bg-red-100 text-red-600 px-2 py-1 rounded hover:bg-red-200 transition-colors">
+                🗑️
+              </button>
+            </div>
+            <div id="customPaletteMobile" class="grid grid-cols-6 gap-2 min-h-[40px] p-2 bg-gray-50 rounded border-2 border-dashed border-gray-300"></div>
+          </div>
+        </div>
+
+        <!-- レイヤーパネル（モバイル） -->
+        <div class="border-t pt-6">
+          <div class="flex justify-between items-center mb-3">
+            <h3 class="text-lg font-bold">📚 レイヤー</h3>
+            <button id="resetBtnMobile" class="text-sm bg-gray-200 px-3 py-2 rounded hover:bg-gray-300 transition-colors">
+              🔄 リセット
+            </button>
+          </div>
+          <div id="layerListMobile" class="space-y-2 max-h-96 overflow-y-auto"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- スマホ用トグルボタン -->
+    <button id="panelToggle" class="panel-toggle lg:hidden">
+      ◀
+    </button>
+
     <!-- 使い方 -->
     <div class="mt-8 bg-white rounded-lg shadow-lg p-6">
       <p class="mb-4 text-sm lg:text-base font-bold text-pink-600">
@@ -203,486 +403,534 @@
             loading="lazy">
         </button>
       </div>
-
-      <p class="mt-3 text-xs lg:text-sm text-gray-600">
-        画像をクリックすると拡大表示できます。
-      </p>
     </section>
+  </div>
 
-
-    <!-- 画像拡大モーダル -->
-    <div id="imageModal" class="fixed inset-0 z-[9999] hidden">
-      <div id="imageModalBackdrop" class="absolute inset-0 bg-black/70"></div>
-      <div class="relative w-full h-full flex flex-col items-center justify-center p-4">
-        <button id="imageModalClose" class="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/90 text-gray-900 shadow hover:bg-white transition flex items-center justify-center" aria-label="閉じる">
-          ✕
-        </button>
-        
-        <!-- 拡大コントロール -->
-        <div class="absolute top-4 left-4 bg-white/90 rounded-lg p-3 shadow-lg">
-          <div class="flex items-center gap-3">
-            <span class="text-sm font-medium text-gray-700">🔍 拡大</span>
-            <input type="range" id="zoomSlider" min="50" max="300" value="100" class="w-32">
-            <span id="zoomPercent" class="text-sm font-medium text-gray-700 w-12">100%</span>
-            <button id="resetZoom" class="px-2 py-1 bg-gray-200 hover:bg-gray-300 rounded text-xs">リセット</button>
+  <!-- 画像モーダル -->
+  <div id="imageModal" class="hidden fixed inset-0 z-[2000] flex items-center justify-center bg-black/80 p-4">
+    <div class="relative w-full h-full flex flex-col">
+      <!-- ヘッダー -->
+      <div class="flex justify-between items-center mb-4">
+        <div class="flex items-center gap-4">
+          <button id="resetZoom" class="bg-white/90 hover:bg-white px-4 py-2 rounded-lg text-sm font-medium transition">
+            🔄 100%
+          </button>
+          <div class="flex items-center gap-2">
+            <input type="range" id="zoomSlider" min="50" max="200" value="100" class="w-32">
+            <span id="zoomPercent" class="text-white font-medium min-w-[3rem]">100%</span>
           </div>
         </div>
-        
-        <!-- 画像コンテナ(スクロール可能) -->
-        <div class="flex-1 overflow-auto flex items-center justify-center w-full">
-          <img id="imageModalImg" src="" alt="" class="rounded-xl shadow-2xl border border-white/20 transition-transform" style="max-width: none; max-height: none; transform: scale(1);">
-        </div>
+        <button id="imageModalClose" class="w-10 h-10 rounded-full bg-white/90 hover:bg-white flex items-center justify-center font-bold transition text-xl">
+          ✕
+        </button>
+      </div>
+      
+      <!-- 画像表示エリア -->
+      <div id="imageModalBackdrop" class="flex-1 overflow-auto flex items-center justify-center cursor-pointer">
+        <img id="imageModalImg" src="" alt="" class="max-w-full max-h-full object-contain transition-transform duration-200 cursor-default" style="transform-origin: center center;">
       </div>
     </div>
   </div>
 
   <script>
-    // 画像URLの設定
-    const layerImageUrls = {
-      1: './images/1.png',
-      2: './images/2.png',
-      3: './images/3.png',
-      4: './images/4.png',
-      5: './images/5.png',
-      6: './images/6.png',
-      7: './images/7.png',
-      8: './images/8.png',
-      9: './images/9.png',
-      10: './images/10.png',
-      11: './images/11.png',
-      12: './images/12.png',
-      13: './images/13.png',
-    };
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    
+    // 色相バーcanvasの参照を保持
+    const colorBar = document.getElementById('colorBar');
+    const colorBarMobile = document.getElementById('colorBarMobile');
+    const colorBarCtx = colorBar.getContext('2d');
+    const colorBarCtxMobile = colorBarMobile.getContext('2d');
 
-    // 状態管理
-    let selectedColor = '#ff0000';
-    let selectedLayer = 'background';
-    let loadedImages = {};
-    let imageLoadStatus = {};
-    let customPalette = [];
     let currentHue = 0;
     let currentSaturation = 100;
     let currentBrightness = 50;
-    let layers = [
-      { id: 'background', name: '背景', color: '#ffffff', visible: true, isBackground: true },
-      { id: 2, name: '帽子', color: null, visible: true },
-      { id: 3, name: 'フリル', color: null, visible: true },
-      { id: 4, name: 'ライン', color: null, visible: true },
-      { id: 5, name: '胸リボン', color: null, visible: true },
-      { id: 6, name: '上着', color: null, visible: true },
-      { id: 7, name: '靴下リボン', color: null, visible: true },
-      { id: 8, name: '靴下', color: null, visible: true },
-      { id: 9, name: 'スカート', color: null, visible: true },
-      { id: 10, name: '靴', color: null, visible: true },
-      { id: 11, name: '髪リボン', color: null, visible: true },
-      { id: 12, name: 'イヤリング', color: null, visible: true },
-      { id: 13, name: '襟', color: null, visible: true },
+    let currentColor = '#ff0000';
+    let customPalette = [];
+
+    const imagePaths = [
+      './images/レイヤー 2.png',
+      './images/レイヤー 1.png',
+      './images/レイヤー 3.png',
+      './images/レイヤー 4.png',
+      './images/レイヤー 5.png',
+      './images/レイヤー 6.png',
+      './images/レイヤー 7.png',
+      './images/レイヤー 8.png',
+      './images/レイヤー 9.png',
+      './images/レイヤー 10.png',
+      './images/レイヤー 11.png',
+      './images/レイヤー 12.png',
+      './images/レイヤー 13.png',
+      './images/レイヤー 14.png',
+      './images/レイヤー 15.png',
+      './images/レイヤー 16.png',
+      './images/レイヤー 17.png',
+      './images/レイヤー 18.png',
+      './images/レイヤー 19.png',
+      './images/レイヤー 20.png',
+      './images/レイヤー 21.png',
     ];
+
+    const loadedImages = {};
+    let loadCount = 0;
+    let errorCount = 0;
+    const errorMessages = [];
+
+    let layers = [];
+    let selectedLayer = null;
     let fixedLayerVisible = true;
 
-    // DOMエレメント
-    const canvas = document.getElementById('canvas');
-    const ctx = canvas.getContext('2d');
-    const colorBar = document.getElementById('colorBar');
-    const colorBarCtx = colorBar.getContext('2d');
-    const brightnessSlider = document.getElementById('brightnessSlider');
-    const saturationSlider = document.getElementById('saturationSlider');
-    const hexInput = document.getElementById('hexInput');
-    const currentColorPreview = document.getElementById('currentColorPreview');
-    const colorCursor = document.getElementById('colorCursor');
-
     // 初期化
-    function init() {
+    async function init() {
       loadPaletteFromCache();
-      loadImages();
-      drawColorBar();
+      setupColorBar();
+      setupColorBarMobile();
+      updateColorFromHSB();
       renderCustomPalette();
-      renderLayerList();
+      renderCustomPaletteMobile();
       setupEventListeners();
-      updateCurrentColor();
-      setTimeout(updateColorCursorPosition, 100);
-    }
-
-    // 画像を読み込む
-    function loadImages() {
-      document.getElementById('loadingStatus').classList.remove('hidden');
-      document.getElementById('pathInfo').textContent = `画像パス例: ${layerImageUrls[1]}`;
-      let loadCount = 0;
-      const totalImages = Object.keys(layerImageUrls).length;
-
-      Object.entries(layerImageUrls).forEach(([id, url]) => {
-        imageLoadStatus[id] = 'loading';
-        const img = new Image();
-        img.crossOrigin = 'anonymous';
-        
-        img.onload = () => {
-          loadedImages[id] = img;
-          imageLoadStatus[id] = 'loaded';
-          loadCount++;
-          updateLoadStatus(loadCount, totalImages);
-          
-          if (loadCount === totalImages) {
-            document.getElementById('loadingStatus').classList.add('hidden');
-            const hasErrors = Object.values(imageLoadStatus).some(s => s === 'error');
-            if (!hasErrors) {
-              document.getElementById('debugInfo').classList.add('hidden');
-            }
-            drawCanvas();
-          }
-        };
-        
-        img.onerror = (e) => {
-          console.error(`画像読み込みエラー - レイヤー${id}: ${url}`, e);
-          imageLoadStatus[id] = 'error';
-          loadCount++;
-          updateLoadStatus(loadCount, totalImages);
-          
-          if (loadCount === totalImages) {
-            document.getElementById('loadingStatus').classList.add('hidden');
-            showErrors();
-          }
-        };
-        
-        img.src = url;
-      });
-    }
-
-    // 読み込み状態を更新
-    function updateLoadStatus(loaded, total) {
-      const statusDiv = document.getElementById('imageStatus');
-      statusDiv.innerHTML = '';
-      
-      Object.entries(imageLoadStatus).forEach(([id, status]) => {
-        const div = document.createElement('div');
-        div.className = 'text-blue-600';
-        const emoji = status === 'loaded' ? '✅' : status === 'loading' ? '⏳' : '❌';
-        div.textContent = `レイヤー${id}: ${emoji}`;
-        statusDiv.appendChild(div);
-      });
-      
-      document.getElementById('loadCount').textContent = 
-        `読み込み済み: ${Object.values(imageLoadStatus).filter(s => s === 'loaded').length} / ${total}`;
-    }
-
-    // エラーを表示
-    function showErrors() {
-      const errors = Object.entries(imageLoadStatus).filter(([_, status]) => status === 'error');
-      if (errors.length > 0) {
-        document.getElementById('errorStatus').classList.remove('hidden');
-        const errorList = document.getElementById('errorList');
-        errorList.innerHTML = '';
-        errors.forEach(([id]) => {
-          const li = document.createElement('li');
-          li.textContent = `レイヤー${id}: ${layerImageUrls[id]} - 読み込みエラー`;
-          errorList.appendChild(li);
-        });
-      }
+      await loadImages();
+      initializeLayers();
+      renderLayers();
+      renderLayersMobile();
       drawCanvas();
     }
 
-    // 色相バーを描画
-    function drawColorBar() {
-      const width = colorBar.parentElement.offsetWidth;
-      const height = 32;
-      colorBar.width = width;
-      colorBar.height = height;
-
-      const gradient = colorBarCtx.createLinearGradient(0, 0, width, 0);
+    // 色相バーの描画
+    function setupColorBar() {
+      colorBar.width = colorBar.offsetWidth;
+      colorBar.height = colorBar.offsetHeight;
+      
+      const gradient = colorBarCtx.createLinearGradient(0, 0, colorBar.width, 0);
       for (let i = 0; i <= 360; i += 30) {
         gradient.addColorStop(i / 360, `hsl(${i}, 100%, 50%)`);
       }
-      
       colorBarCtx.fillStyle = gradient;
-      colorBarCtx.fillRect(0, 0, width, height);
+      colorBarCtx.fillRect(0, 0, colorBar.width, colorBar.height);
+
+      colorBar.addEventListener('click', (e) => {
+        const rect = colorBar.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        currentHue = Math.round((x / rect.width) * 360);
+        updateColorFromHSB();
+        updateCursor();
+      });
     }
 
-    // 色相バーのカーソル位置を更新
-    function updateColorCursorPosition() {
-      const barContainer = colorBar.parentElement;
-      const rect = barContainer.getBoundingClientRect();
-      const x = (currentHue / 360) * rect.width;
+    // 色相バー（モバイル）の描画
+    function setupColorBarMobile() {
+      colorBarMobile.width = colorBarMobile.offsetWidth;
+      colorBarMobile.height = colorBarMobile.offsetHeight;
       
-      colorCursor.style.left = `${x}px`;
-    }
-
-    // 色相バーのクリックイベント
-    colorBar.addEventListener('click', (e) => {
-      const rect = colorBar.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const hue = Math.round((x / rect.width) * 360);
-      
-      currentHue = Math.min(360, Math.max(0, hue));
-      updateCurrentColor();
-    });
-
-    // HSLからHEXへ変換
-    function hslToHex(h, s, l) {
-      s /= 100;
-      l /= 100;
-      const a = s * Math.min(l, 1 - l);
-      const f = n => {
-        const k = (n + h / 30) % 12;
-        const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
-        return Math.round(255 * color).toString(16).padStart(2, '0');
-      };
-      return `#${f(0)}${f(8)}${f(4)}`;
-    }
-
-    // 現在の色を更新
-    function updateCurrentColor() {
-      const hex = hslToHex(currentHue, currentSaturation, currentBrightness);
-      selectedColor = hex;
-      currentColorPreview.style.backgroundColor = hex;
-      hexInput.value = hex;
-      updateColorCursorPosition();
-    }
-
-    // スライダーイベント
-    brightnessSlider.addEventListener('input', (e) => {
-      currentBrightness = parseInt(e.target.value);
-      updateCurrentColor();
-    });
-
-    saturationSlider.addEventListener('input', (e) => {
-      currentSaturation = parseInt(e.target.value);
-      updateCurrentColor();
-    });
-
-    // HEX入力イベント
-    hexInput.addEventListener('input', (e) => {
-      const hex = e.target.value;
-      if (/^#[0-9A-F]{6}$/i.test(hex)) {
-        selectedColor = hex;
-        currentColorPreview.style.backgroundColor = hex;
-        
-        const rgb = hexToRgb(hex);
-        const hsl = rgbToHsl(rgb.r, rgb.g, rgb.b);
-        currentHue = hsl.h;
-        currentSaturation = hsl.s;
-        currentBrightness = hsl.l;
-        brightnessSlider.value = currentBrightness;
-        saturationSlider.value = currentSaturation;
+      const gradient = colorBarCtxMobile.createLinearGradient(0, 0, colorBarMobile.width, 0);
+      for (let i = 0; i <= 360; i += 30) {
+        gradient.addColorStop(i / 360, `hsl(${i}, 100%, 50%)`);
       }
-    });
+      colorBarCtxMobile.fillStyle = gradient;
+      colorBarCtxMobile.fillRect(0, 0, colorBarMobile.width, colorBarMobile.height);
 
-    // RGBからHSLへ変換
-    function rgbToHsl(r, g, b) {
-      r /= 255;
-      g /= 255;
-      b /= 255;
-      const max = Math.max(r, g, b);
-      const min = Math.min(r, g, b);
-      let h, s, l = (max + min) / 2;
-
-      if (max === min) {
-        h = s = 0;
-      } else {
-        const d = max - min;
-        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-        switch (max) {
-          case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
-          case g: h = ((b - r) / d + 2) / 6; break;
-          case b: h = ((r - g) / d + 4) / 6; break;
-        }
-      }
-
-      return {
-        h: Math.round(h * 360),
-        s: Math.round(s * 100),
-        l: Math.round(l * 100)
-      };
+      colorBarMobile.addEventListener('click', (e) => {
+        const rect = colorBarMobile.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        currentHue = Math.round((x / rect.width) * 360);
+        updateColorFromHSB();
+        updateCursor();
+        updateCursorMobile();
+      });
     }
 
-    // 自作パレットに色を追加
+    // HSBから色を更新
+    function updateColorFromHSB() {
+      currentColor = hsbToHex(currentHue, currentSaturation, currentBrightness);
+      document.getElementById('currentColorPreview').style.backgroundColor = currentColor;
+      document.getElementById('currentColorPreviewMobile').style.backgroundColor = currentColor;
+      document.getElementById('hexInput').value = currentColor;
+      document.getElementById('hexInputMobile').value = currentColor;
+    }
+
+    // カーソル位置更新
+    function updateCursor() {
+      const cursor = document.getElementById('colorCursor');
+      const percent = (currentHue / 360) * 100;
+      cursor.style.left = `${percent}%`;
+    }
+
+    // カーソル位置更新（モバイル）
+    function updateCursorMobile() {
+      const cursor = document.getElementById('colorCursorMobile');
+      const percent = (currentHue / 360) * 100;
+      cursor.style.left = `${percent}%`;
+    }
+
+    // HSB to Hex変換
+    function hsbToHex(h, s, b) {
+      s = s / 100;
+      b = b / 100;
+      const c = b * s;
+      const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+      const m = b - c;
+      let r = 0, g = 0, bl = 0;
+
+      if (h >= 0 && h < 60) { r = c; g = x; bl = 0; }
+      else if (h >= 60 && h < 120) { r = x; g = c; bl = 0; }
+      else if (h >= 120 && h < 180) { r = 0; g = c; bl = x; }
+      else if (h >= 180 && h < 240) { r = 0; g = x; bl = c; }
+      else if (h >= 240 && h < 300) { r = x; g = 0; bl = c; }
+      else if (h >= 300 && h < 360) { r = c; g = 0; bl = x; }
+
+      r = Math.round((r + m) * 255);
+      g = Math.round((g + m) * 255);
+      bl = Math.round((bl + m) * 255);
+
+      return `#${((1 << 24) + (r << 16) + (g << 8) + bl).toString(16).slice(1)}`;
+    }
+
+    // カスタムパレットに追加
     function addToCustomPalette() {
-      if (!customPalette.includes(selectedColor)) {
-        customPalette.push(selectedColor);
-        savePaletteToCache();
-        renderCustomPalette();
-      }
-    }
-
-    // 自作パレットを描画
-    function renderCustomPalette() {
-      const paletteDiv = document.getElementById('customPalette');
-      paletteDiv.innerHTML = '';
-      
-      if (customPalette.length === 0) {
-        paletteDiv.innerHTML = '<div class="col-span-6 text-center text-gray-400 text-sm py-2">色を登録してください</div>';
+      if (customPalette.length >= 24) {
+        alert('マイパレットは最大24色までです。');
         return;
       }
       
-      customPalette.forEach((color, index) => {
-        const wrapper = document.createElement('div');
-        wrapper.className = 'relative group';
+      if (!customPalette.includes(currentColor)) {
+        customPalette.push(currentColor);
+        savePaletteToCache();
+        renderCustomPalette();
+        renderCustomPaletteMobile();
+      }
+    }
+
+    // カスタムパレットの描画
+    function renderCustomPalette() {
+      const paletteEl = document.getElementById('customPalette');
+      paletteEl.innerHTML = '';
+      
+      customPalette.forEach((color, idx) => {
+        const colorBox = document.createElement('div');
+        colorBox.className = 'w-full aspect-square rounded cursor-pointer border-2 border-gray-300 hover:border-gray-500 transition-colors relative group';
+        colorBox.style.backgroundColor = color;
+        colorBox.title = color;
         
-        const btn = document.createElement('button');
-        btn.className = 'w-full aspect-square rounded border-2 border-gray-300 transition-transform hover:scale-110';
-        btn.style.backgroundColor = color;
-        btn.onclick = () => {
-          selectedColor = color;
-          currentColorPreview.style.backgroundColor = color;
-          hexInput.value = color;
-          
-          const rgb = hexToRgb(color);
-          const hsl = rgbToHsl(rgb.r, rgb.g, rgb.b);
-          currentHue = hsl.h;
-          currentSaturation = hsl.s;
-          currentBrightness = hsl.l;
-          brightnessSlider.value = currentBrightness;
-          saturationSlider.value = currentSaturation;
-          updateColorCursorPosition();
-        };
-        
+        // 削除ボタン
         const deleteBtn = document.createElement('button');
-        deleteBtn.className = 'absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-4 h-4 text-xs opacity-0 group-hover:opacity-100 transition-opacity';
+        deleteBtn.className = 'absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white rounded-full text-xs opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center';
         deleteBtn.innerHTML = '×';
         deleteBtn.onclick = (e) => {
           e.stopPropagation();
-          customPalette.splice(index, 1);
+          customPalette.splice(idx, 1);
           savePaletteToCache();
           renderCustomPalette();
+          renderCustomPaletteMobile();
         };
         
-        wrapper.appendChild(btn);
-        wrapper.appendChild(deleteBtn);
-        paletteDiv.appendChild(wrapper);
+        colorBox.appendChild(deleteBtn);
+        
+        colorBox.onclick = () => {
+          currentColor = color;
+          document.getElementById('currentColorPreview').style.backgroundColor = currentColor;
+          document.getElementById('currentColorPreviewMobile').style.backgroundColor = currentColor;
+          document.getElementById('hexInput').value = currentColor;
+          document.getElementById('hexInputMobile').value = currentColor;
+        };
+        
+        paletteEl.appendChild(colorBox);
       });
     }
 
-    // レイヤーリストを描画
-    function renderLayerList() {
-      const listDiv = document.getElementById('layerList');
-      listDiv.innerHTML = '';
+    // カスタムパレットの描画（モバイル）
+    function renderCustomPaletteMobile() {
+      const paletteEl = document.getElementById('customPaletteMobile');
+      paletteEl.innerHTML = '';
+      
+      customPalette.forEach((color, idx) => {
+        const colorBox = document.createElement('div');
+        colorBox.className = 'w-full aspect-square rounded cursor-pointer border-2 border-gray-300 hover:border-gray-500 transition-colors relative group';
+        colorBox.style.backgroundColor = color;
+        colorBox.title = color;
+        
+        // 削除ボタン
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white rounded-full text-xs opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center';
+        deleteBtn.innerHTML = '×';
+        deleteBtn.onclick = (e) => {
+          e.stopPropagation();
+          customPalette.splice(idx, 1);
+          savePaletteToCache();
+          renderCustomPalette();
+          renderCustomPaletteMobile();
+        };
+        
+        colorBox.appendChild(deleteBtn);
+        
+        colorBox.onclick = () => {
+          currentColor = color;
+          document.getElementById('currentColorPreview').style.backgroundColor = currentColor;
+          document.getElementById('currentColorPreviewMobile').style.backgroundColor = currentColor;
+          document.getElementById('hexInput').value = currentColor;
+          document.getElementById('hexInputMobile').value = currentColor;
+        };
+        
+        paletteEl.appendChild(colorBox);
+      });
+    }
 
-      // 固定レイヤー(レイヤー1)
-      const fixedDiv = document.createElement('div');
-      fixedDiv.className = 'flex items-center gap-2 p-3 rounded-lg border-2 border-gray-400 bg-gray-100';
-      fixedDiv.innerHTML = `
-        <button onclick="toggleFixedLayer()" class="flex-shrink-0">
+    // 画像読み込み
+    async function loadImages() {
+      const loadingEl = document.getElementById('loadingStatus');
+      const errorEl = document.getElementById('errorStatus');
+      const errorListEl = document.getElementById('errorList');
+      const imageStatusEl = document.getElementById('imageStatus');
+      const loadCountEl = document.getElementById('loadCount');
+      const pathInfoEl = document.getElementById('pathInfo');
+
+      loadingEl.classList.remove('hidden');
+      
+      pathInfoEl.textContent = `読み込み元: ${window.location.origin}${window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/'))}`;
+
+      const promises = imagePaths.map((path, index) => {
+        return new Promise((resolve) => {
+          const img = new Image();
+          img.crossOrigin = 'anonymous';
+          
+          const statusDiv = document.createElement('div');
+          statusDiv.className = 'p-2 bg-gray-100 rounded text-xs';
+          statusDiv.textContent = `レイヤー${index + 1}: 読込中...`;
+          imageStatusEl.appendChild(statusDiv);
+
+          img.onload = () => {
+            loadedImages[index] = img;
+            loadCount++;
+            statusDiv.className = 'p-2 bg-green-100 rounded text-xs';
+            statusDiv.textContent = `レイヤー${index + 1}: ✓`;
+            loadCountEl.textContent = `読み込み完了: ${loadCount}/${imagePaths.length}`;
+            
+            if (index === 0) {
+              canvas.width = img.width;
+              canvas.height = img.height;
+            }
+            resolve();
+          };
+
+          img.onerror = () => {
+            errorCount++;
+            const errorMsg = `レイヤー${index + 1} (${path})`;
+            errorMessages.push(errorMsg);
+            statusDiv.className = 'p-2 bg-red-100 rounded text-xs';
+            statusDiv.textContent = `レイヤー${index + 1}: ✗`;
+            loadCountEl.textContent = `読み込み完了: ${loadCount}/${imagePaths.length} (エラー: ${errorCount})`;
+            resolve();
+          };
+
+          img.src = path;
+        });
+      });
+
+      await Promise.all(promises);
+
+      loadingEl.classList.add('hidden');
+
+      if (errorCount > 0) {
+        errorEl.classList.remove('hidden');
+        errorListEl.innerHTML = errorMessages.map(msg => `<li>${msg}</li>`).join('');
+      }
+    }
+
+    // レイヤーを初期化
+    function initializeLayers() {
+      layers = imagePaths.slice(2).map((path, index) => ({
+        id: index + 2,
+        name: `レイヤー${index + 2}`,
+        visible: true,
+        color: '#ffffff',
+        imagePath: path
+      }));
+    }
+
+    // レイヤーをレンダリング
+    function renderLayers() {
+      const layerList = document.getElementById('layerList');
+      layerList.innerHTML = '';
+
+      // 固定レイヤー(レイヤー1)を最初に表示
+      const fixedLayer = document.createElement('div');
+      fixedLayer.className = 'flex items-center justify-between p-3 bg-gray-100 rounded-lg border-2 border-gray-300';
+      fixedLayer.innerHTML = `
+        <div class="flex items-center gap-3">
+          <span class="text-sm font-medium">レイヤー1 (固定)</span>
+        </div>
+        <button class="layer-eye w-8 h-8 rounded hover:bg-gray-200 transition-colors" data-layer="fixed">
           ${fixedLayerVisible ? '👁️' : '👁️‍🗨️'}
         </button>
-        <div class="w-8 h-8 rounded border-2 border-gray-300 flex-shrink-0 bg-white"></div>
-        <span class="font-medium flex-grow">レイヤー1(固定)</span>
-        <span class="text-xs text-gray-500">🔒</span>
       `;
-      listDiv.appendChild(fixedDiv);
+      layerList.appendChild(fixedLayer);
 
-      // その他のレイヤー
       layers.forEach(layer => {
-        const div = document.createElement('div');
-        const isSelected = selectedLayer === layer.id;
-        div.className = `flex items-center gap-2 p-3 rounded-lg border-2 cursor-pointer transition-colors ${
-          isSelected ? 'border-purple-500 bg-purple-50' : 'border-gray-200 hover:border-gray-300'
+        const layerEl = document.createElement('div');
+        layerEl.className = `flex items-center justify-between p-3 rounded-lg border-2 transition-colors cursor-pointer ${
+          selectedLayer === layer.id ? 'bg-purple-100 border-purple-400' : 'bg-white border-gray-200 hover:border-purple-200'
         }`;
-        div.onclick = () => selectLayer(layer.id);
         
-        div.innerHTML = `
-          <button onclick="event.stopPropagation(); toggleLayerVisibility('${layer.id}')" class="flex-shrink-0">
+        layerEl.innerHTML = `
+          <div class="flex items-center gap-3">
+            <div class="w-6 h-6 rounded border-2 border-gray-300" style="background-color: ${layer.color}"></div>
+            <span class="text-sm font-medium">${layer.name}</span>
+          </div>
+          <button class="layer-eye w-8 h-8 rounded hover:bg-gray-200 transition-colors" data-layer="${layer.id}">
             ${layer.visible ? '👁️' : '👁️‍🗨️'}
           </button>
-          <div class="w-8 h-8 rounded border-2 border-gray-300 flex-shrink-0" style="background-color: ${layer.color || '#ffffff'}"></div>
-          <span class="font-medium flex-grow">${layer.name}</span>
         `;
-        listDiv.appendChild(div);
+        
+        layerEl.onclick = (e) => {
+          if (!e.target.classList.contains('layer-eye')) {
+            selectedLayer = layer.id;
+            renderLayers();
+            renderLayersMobile();
+          }
+        };
+        
+        layerList.appendChild(layerEl);
+      });
+
+      // 目アイコンのイベント
+      document.querySelectorAll('.layer-eye').forEach(btn => {
+        btn.onclick = (e) => {
+          e.stopPropagation();
+          const layerId = btn.getAttribute('data-layer');
+          
+          if (layerId === 'fixed') {
+            fixedLayerVisible = !fixedLayerVisible;
+          } else {
+            const layer = layers.find(l => l.id === parseInt(layerId));
+            if (layer) layer.visible = !layer.visible;
+          }
+          
+          renderLayers();
+          renderLayersMobile();
+          drawCanvas();
+        };
       });
     }
 
-    // レイヤーを選択
-    function selectLayer(layerId) {
-      selectedLayer = layerId;
-      renderLayerList();
-      updateApplyButton();
+    // レイヤーをレンダリング（モバイル）
+    function renderLayersMobile() {
+      const layerList = document.getElementById('layerListMobile');
+      layerList.innerHTML = '';
+
+      // 固定レイヤー(レイヤー1)を最初に表示
+      const fixedLayer = document.createElement('div');
+      fixedLayer.className = 'flex items-center justify-between p-3 bg-gray-100 rounded-lg border-2 border-gray-300';
+      fixedLayer.innerHTML = `
+        <div class="flex items-center gap-3">
+          <span class="text-sm font-medium">レイヤー1 (固定)</span>
+        </div>
+        <button class="layer-eye-mobile w-8 h-8 rounded hover:bg-gray-200 transition-colors" data-layer="fixed">
+          ${fixedLayerVisible ? '👁️' : '👁️‍🗨️'}
+        </button>
+      `;
+      layerList.appendChild(fixedLayer);
+
+      layers.forEach(layer => {
+        const layerEl = document.createElement('div');
+        layerEl.className = `flex items-center justify-between p-3 rounded-lg border-2 transition-colors cursor-pointer ${
+          selectedLayer === layer.id ? 'bg-purple-100 border-purple-400' : 'bg-white border-gray-200 hover:border-purple-200'
+        }`;
+        
+        layerEl.innerHTML = `
+          <div class="flex items-center gap-3">
+            <div class="w-6 h-6 rounded border-2 border-gray-300" style="background-color: ${layer.color}"></div>
+            <span class="text-sm font-medium">${layer.name}</span>
+          </div>
+          <button class="layer-eye-mobile w-8 h-8 rounded hover:bg-gray-200 transition-colors" data-layer="${layer.id}">
+            ${layer.visible ? '👁️' : '👁️‍🗨️'}
+          </button>
+        `;
+        
+        layerEl.onclick = (e) => {
+          if (!e.target.classList.contains('layer-eye-mobile')) {
+            selectedLayer = layer.id;
+            renderLayers();
+            renderLayersMobile();
+          }
+        };
+        
+        layerList.appendChild(layerEl);
+      });
+
+      // 目アイコンのイベント
+      document.querySelectorAll('.layer-eye-mobile').forEach(btn => {
+        btn.onclick = (e) => {
+          e.stopPropagation();
+          const layerId = btn.getAttribute('data-layer');
+          
+          if (layerId === 'fixed') {
+            fixedLayerVisible = !fixedLayerVisible;
+          } else {
+            const layer = layers.find(l => l.id === parseInt(layerId));
+            if (layer) layer.visible = !layer.visible;
+          }
+          
+          renderLayers();
+          renderLayersMobile();
+          drawCanvas();
+        };
+      });
     }
-
-    // 適用ボタンの状態を更新
-    function updateApplyButton() {
-      const btn = document.getElementById('applyColorBtn');
-      if (selectedLayer === 1) {
-        btn.className = 'w-full bg-gray-300 text-gray-500 py-3 rounded-lg font-bold cursor-not-allowed text-sm lg:text-base';
-        btn.textContent = '固定レイヤー(変更不可)';
-        btn.disabled = true;
-      } else {
-        btn.className = 'w-full bg-purple-600 text-white py-3 rounded-lg font-bold hover:bg-purple-700 transition-colors text-sm lg:text-base';
-        btn.textContent = '選択したレイヤーに塗る';
-        btn.disabled = false;
-      }
-    }
-
-    // レイヤーの表示/非表示を切り替え
-    window.toggleLayerVisibility = function(layerId) {
-      const layer = layers.find(l => l.id == layerId);
-      if (layer) {
-        layer.visible = !layer.visible;
-        renderLayerList();
-        drawCanvas();
-      }
-    };
-
-    // 固定レイヤーの表示/非表示
-    window.toggleFixedLayer = function() {
-      fixedLayerVisible = !fixedLayerVisible;
-      renderLayerList();
-      drawCanvas();
-    };
 
     // 色を適用
     function applyColor() {
-      if (selectedLayer === 1) return;
-      
+      if (!selectedLayer) {
+        alert('レイヤーを選択してください');
+        return;
+      }
+
       const layer = layers.find(l => l.id === selectedLayer);
       if (layer) {
-        layer.color = selectedColor;
-        renderLayerList();
+        layer.color = currentColor;
+        renderLayers();
+        renderLayersMobile();
         drawCanvas();
       }
     }
 
-    // リセット
+    // すべてリセット
     function resetAll() {
-      layers.forEach(layer => {
-        if (layer.isBackground) {
+      if (confirm('すべてのレイヤーの色をリセットしますか?')) {
+        layers.forEach(layer => {
           layer.color = '#ffffff';
-        } else {
-          layer.color = null;
-        }
-      });
-      renderLayerList();
-      drawCanvas();
+          layer.visible = true;
+        });
+        fixedLayerVisible = true;
+        selectedLayer = null;
+        renderLayers();
+        renderLayersMobile();
+        drawCanvas();
+      }
     }
 
-    // キャンバスに描画
+    // キャンバスを描画
     function drawCanvas() {
-      if (Object.keys(loadedImages).length === 0) return;
-
-      const firstImg = loadedImages[1];
-      if (firstImg) {
-        canvas.width = firstImg.width / 2;
-        canvas.height = firstImg.height / 2;
-      }
-
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // レイヤーを描画
+      // 背景レイヤー
+      const bgImg = loadedImages[0];
+      if (bgImg) ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
+
+      // 各レイヤー
       layers.forEach(layer => {
         if (!layer.visible) return;
 
-        if (layer.isBackground) {
-          ctx.fillStyle = layer.color || '#ffffff';
-          ctx.fillRect(0, 0, canvas.width, canvas.height);
-          return;
-        }
-
-        const img = loadedImages[layer.id];
+        const img = loadedImages[layer.id - 1];
         if (!img) return;
 
-        if (layer.color) {
+        if (layer.color !== '#ffffff') {
           const tempCanvas = document.createElement('canvas');
           tempCanvas.width = canvas.width;
           tempCanvas.height = canvas.height;
-          const tempCtx = tempCanvas.getContext('2d');
+          const tempCtx = tempCanvas.getContext('2d', { willReadFrequently: true });
           
           tempCtx.drawImage(img, 0, 0, tempCanvas.width, tempCanvas.height);
+          
           const imageData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
           const data = imageData.data;
           
@@ -773,6 +1021,7 @@
         customPalette = [];
         savePaletteToCache();
         renderCustomPalette();
+        renderCustomPaletteMobile();
       }
     }
 
@@ -816,14 +1065,44 @@
       }
     }
 
+    // スライドパネルの開閉
+    function togglePanel() {
+      const panel = document.getElementById('slidePanel');
+      const overlay = document.getElementById('panelOverlay');
+      const closeBtn = document.getElementById('closePanelBtn');
+      panel.classList.toggle('active');
+      overlay.classList.toggle('active');
+      closeBtn.classList.toggle('active');
+    }
+
+    function closePanel() {
+      const panel = document.getElementById('slidePanel');
+      const overlay = document.getElementById('panelOverlay');
+      const closeBtn = document.getElementById('closePanelBtn');
+      panel.classList.remove('active');
+      overlay.classList.remove('active');
+      closeBtn.classList.remove('active');
+    }
+
     // イベントリスナーを設定
     function setupEventListeners() {
+      // PC版
       document.getElementById('applyColorBtn').onclick = applyColor;
       document.getElementById('resetBtn').onclick = resetAll;
       document.getElementById('downloadBtn').onclick = downloadImage;
       document.getElementById('tweetBtn').onclick = tweetImage;
       document.getElementById('addToPaletteBtn').onclick = addToCustomPalette;
       document.getElementById('resetPaletteBtn').onclick = resetPalette;
+
+      // モバイル版
+      document.getElementById('applyColorBtnMobile').onclick = applyColor;
+      document.getElementById('resetBtnMobile').onclick = resetAll;
+      document.getElementById('addToPaletteBtnMobile').onclick = addToCustomPalette;
+      document.getElementById('resetPaletteBtnMobile').onclick = resetPalette;
+
+      // スライドパネル
+      document.getElementById('panelToggle').onclick = togglePanel;
+      document.getElementById('closePanelBtn').onclick = closePanel;
       
       // 上部ダウンロードバーを閉じる
       const closeBtn = document.getElementById('closeTopDownloadBar');
@@ -833,6 +1112,52 @@
           topBar.classList.add('hidden');
         };
       }
+
+      // 明度・彩度スライダー（PC）
+      document.getElementById('brightnessSlider').addEventListener('input', (e) => {
+        currentBrightness = parseInt(e.target.value);
+        updateColorFromHSB();
+      });
+
+      document.getElementById('saturationSlider').addEventListener('input', (e) => {
+        currentSaturation = parseInt(e.target.value);
+        updateColorFromHSB();
+      });
+
+      // 明度・彩度スライダー（モバイル）
+      document.getElementById('brightnessSliderMobile').addEventListener('input', (e) => {
+        currentBrightness = parseInt(e.target.value);
+        updateColorFromHSB();
+        document.getElementById('brightnessSlider').value = currentBrightness;
+      });
+
+      document.getElementById('saturationSliderMobile').addEventListener('input', (e) => {
+        currentSaturation = parseInt(e.target.value);
+        updateColorFromHSB();
+        document.getElementById('saturationSlider').value = currentSaturation;
+      });
+
+      // Hex入力（PC）
+      document.getElementById('hexInput').addEventListener('change', (e) => {
+        const hex = e.target.value;
+        if (/^#[0-9A-F]{6}$/i.test(hex)) {
+          currentColor = hex;
+          document.getElementById('currentColorPreview').style.backgroundColor = currentColor;
+          document.getElementById('currentColorPreviewMobile').style.backgroundColor = currentColor;
+          document.getElementById('hexInputMobile').value = currentColor;
+        }
+      });
+
+      // Hex入力（モバイル）
+      document.getElementById('hexInputMobile').addEventListener('change', (e) => {
+        const hex = e.target.value;
+        if (/^#[0-9A-F]{6}$/i.test(hex)) {
+          currentColor = hex;
+          document.getElementById('currentColorPreview').style.backgroundColor = currentColor;
+          document.getElementById('currentColorPreviewMobile').style.backgroundColor = currentColor;
+          document.getElementById('hexInput').value = currentColor;
+        }
+      });
       
       // プロモ画像:クリックで拡大表示
       document.querySelectorAll('.promoThumb').forEach((btn) => {
@@ -857,7 +1182,10 @@
       }
       
       document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') closeImageModal();
+        if (e.key === 'Escape') {
+          closeImageModal();
+          closePanel();
+        }
       });
       
       // ズームスライダー
